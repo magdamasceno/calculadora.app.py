@@ -1,40 +1,27 @@
 import streamlit as st
 import math
 
-st.set_page_config(page_title="Calculadora Reclame AQUI", layout="centered")
+st.set_page_config(page_title="Calculadora Reclame AQUI Similares", layout="centered")
 
-# Estilo visual personalizado
+# CSS personalizado
 st.markdown("""
     <style>
-        body {
-            background-color: #004d00;
-            color: white;
-        }
-        .stApp {
-            background-color: #004d00;
-        }
-        label, .stTextInput label, .stNumberInput label {
-            color: hotpink !important;
-            font-weight: bold;
-        }
-        .st-bb {
-            color: white;
-        }
-        .stNumberInput input {
-            color: black;
-            font-weight: bold;
-        }
-        .stButton>button {
-            background-color: #ff4b4b;
-            color: white;
-            font-weight: bold;
-            border-radius: 10px;
-            border: none;
-        }
+    /* Fundo geral */
+    .stApp {
+        background-color: #015e2e;
+    }
+    /* Título principal */
+    h1 {
+        color: white !important;
+        font-weight: bold !important;
+    }
+    /* Cor dos números digitados nos campos */
+    input[type="number"], input[type="text"] {
+        color: black !important;
+        font-weight: bold !important;
+    }
     </style>
 """, unsafe_allow_html=True)
-
-st.markdown("<h1 style='text-align: center; color: white;'>Calculadora Reclame AQUI</h1>", unsafe_allow_html=True)
 
 def to_float(text):
     try:
@@ -78,14 +65,12 @@ def estimar_para_ra1000(total_avaliacoes_atual, is_atual_percent, ir_atual_perce
         if is_atual_percent < meta_is:
             avaliacoes_para_is = meta_ta
 
-    avaliacoes_positivas_final = avaliacoes_para_is
-
-    ta_final_estimado = total_avaliacoes_atual + avaliacoes_positivas_final
+    ta_final_estimado = total_avaliacoes_atual + avaliacoes_para_is
 
     todos_criterios_met = (
         ir_atual_percent >= meta_ir or respostas_necessarias == 0
     ) and (
-        is_atual_percent >= meta_is or avaliacoes_positivas_final == 0
+        is_atual_percent >= meta_is or avaliacoes_para_is == 0
     ) and (
         mn_atual >= meta_mn
     ) and (
@@ -94,18 +79,21 @@ def estimar_para_ra1000(total_avaliacoes_atual, is_atual_percent, ir_atual_perce
         ta_final_estimado >= meta_ta
     )
 
-    if todos_criterios_met and avaliacoes_positivas_final == 0 and respostas_necessarias == 0:
+    if todos_criterios_met and avaliacoes_para_is == 0 and respostas_necessarias == 0:
         return 0, 0
 
-    return avaliacoes_positivas_final, respostas_necessarias
+    return avaliacoes_para_is, respostas_necessarias
+
+st.title("Calculadora de Avaliação – Estimativas Similares")
 
 with st.form("formulario_similar"):
-    total_reclamacoes = st.number_input("Total de reclamações", min_value=0, step=1)
-    total_respostas = st.number_input("Total de respostas", min_value=0, step=1)
-    media_notas_txt = st.text_input("Média das notas", placeholder="Ex: 7,38")
-    indice_solucao_txt = st.text_input("Índice de solução (%)", placeholder="Ex: 86,1")
-    indice_novos_negocios_txt = st.text_input("Índice de novos negócios (%)", placeholder="Ex: 80,5")
-    total_avaliacoes = st.number_input("Total de avaliações", min_value=0, step=1)
+    total_reclamacoes = st.number_input("Total de reclamações", min_value=0, step=1, value=0)
+    total_respostas = st.number_input("Total de respostas", min_value=0, step=1, value=0)
+    media_notas_txt = st.text_input("Média das notas", placeholder="Ex: 7,38", value="")
+    indice_solucao_txt = st.text_input("Índice de solução (%)", placeholder="Ex: 86,1", value="")
+    indice_novos_negocios_txt = st.text_input("Índice de novos negócios (%)", placeholder="Ex: 80,5", value="")
+    total_avaliacoes = st.number_input("Total de avaliações", min_value=0, step=1, value=0)
+
     submitted = st.form_submit_button("Calcular Avaliação (Estimativa Similar)")
 
 if submitted:
@@ -116,7 +104,10 @@ if submitted:
     if total_reclamacoes == 0:
         st.warning("Por favor, Total de Reclamações deve ser maior que zero.")
     else:
-        AR_calculado, ir_calculado = calcular_ar_e_ir(total_respostas, total_reclamacoes, media_notas_val, indice_solucao_val, indice_novos_negocios_val)
+        AR_calculado, ir_calculado = calcular_ar_e_ir(
+            total_respostas, total_reclamacoes,
+            media_notas_val, indice_solucao_val, indice_novos_negocios_val
+        )
 
         reputacao_estimada = "NÃO RECOMENDADA"
         if AR_calculado >= 8: reputacao_estimada = "ÓTIMO"
@@ -134,17 +125,17 @@ if submitted:
         if ja_ra1000:
             reputacao_estimada = "RA1000"
 
-        st.markdown(f"### <b>Sua reputação é <span style='color:white'>{reputacao_estimada}</span> e o AR é <span style='color:white'>{AR_calculado:.1f}</span>.</b>", unsafe_allow_html=True)
+        st.markdown(f"<h4 style='color:white;'>Sua reputação é <b style='color:#00ff99;'>{reputacao_estimada}</b> e o AR é <b style='color:#00ccff;'>{AR_calculado:.1f}</b>.</h4>", unsafe_allow_html=True)
 
         if not ja_ra1000:
             positivas_ra1000, respostas_ra1000 = estimar_para_ra1000(
                 total_avaliacoes, indice_solucao_val, ir_calculado,
                 total_reclamacoes, total_respostas, media_notas_val, indice_novos_negocios_val
             )
-            st.markdown(f"<div style='color:white; font-weight:bold'>Para atingir a reputação RA1000 você precisa de mais <span style='color:#33ffff'>{positivas_ra1000}</span> avaliações positivas e mais <span style='color:#33ffff'>{respostas_ra1000}</span> novas respostas públicas.</div>", unsafe_allow_html=True)
+            st.markdown(f"<p style='color:white; font-weight:bold;'>Para atingir a reputação RA1000 você precisa de mais <span style='color:lightgreen;'>{positivas_ra1000} avaliações positivas</span> e mais <span style='color:cyan;'>{respostas_ra1000} novas respostas públicas</span>.</p>", unsafe_allow_html=True)
         else:
             st.success("Você já atinge os critérios para RA1000!")
 
         negativas_para_bom = estimar_avaliacoes_para_cair_bom(AR_calculado)
         if reputacao_estimada == "ÓTIMO" or reputacao_estimada == "RA1000":
-            st.markdown(f"<div style='color:white; font-weight:bold'>Por outro lado se você obter mais <span style='color:yellow'>{negativas_para_bom}</span> avaliações negativas, sua reputação pode descer.</div>", unsafe_allow_html=True)
+            st.markdown(f"<p style='color:white; font-weight:bold;'>Por outro lado se você obter mais <span style='color:gold;'>{negativas_para_bom} avaliações negativas</span>, sua reputação pode descer.</p>", unsafe_allow_html=True)
