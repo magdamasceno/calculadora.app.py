@@ -1,7 +1,7 @@
 import streamlit as st
 import math
 
-st.set_page_config(page_title="Calculadora Reclame AQUI", layout="centered")
+st.set_page_config(page_title="Calculadora RA", layout="centered")
 
 # Estilo CSS customizado
 st.markdown(
